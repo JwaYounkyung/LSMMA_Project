@@ -123,6 +123,7 @@ class PCAReducer():
                 self.average = pkl.load(fobj)
 
     def reduceFeatures(self, input_features, output_features, overwrite=False):
+        input_features = input_features + '.npy'
         logging.info(f"reducing features {input_features}")
 
         if os.path.exists(output_features) and not overwrite:
@@ -142,15 +143,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Extract ResNet feature from a video.')
 
-    parser.add_argument('--path_video', type=str, required=True,
+    parser.add_argument('--path_video', type=str, required=False, default='data/england_epl/2014-2015/2015-02-21 - 18-00 Chelsea 1 - 1 Burnley/1_720p.mkv', # 유튜브 비디오 경로
                         help="Path of the Input Video")
-    parser.add_argument('--path_features', type=str, required=True,
-                        help="Path of the Output Features")
-    parser.add_argument('--start', type=float, default=None,
-                        help="time of the video to strat extracting features [default:None]")
-    parser.add_argument('--duration', type=float, default=None,
+    parser.add_argument('--path_features', type=str, required=False, # feature 저장 경로
+                        help="Path of the Output Features", default='results/features')
+    parser.add_argument('--start', type=float, default=None, # 0.0
+                        help="time of the video to strat extracting features [default:None]") 
+    parser.add_argument('--duration', type=float, default=None, # 2700.0
                         help="duration of the video before finishing extracting features [default:None]")
-    parser.add_argument('--overwrite', action="store_true",
+    parser.add_argument('--overwrite', action="store_true", default=True,
                         help="Overwrite the features.")
 
     parser.add_argument('--GPU', type=int, default=0,
@@ -173,9 +174,9 @@ if __name__ == "__main__":
                         help="FPS for the features [default:2.0]")
 
     # PCA reduction
-    parser.add_argument('--PCA', type=str, default="pca_512_TF2.pkl",
+    parser.add_argument('--PCA', type=str, default="SoccerNetv2-DevKit/Features/pca_512_TF2.pkl",
                         help="Pickle with pre-computed PCA")
-    parser.add_argument('--PCA_scaler', type=str, default="average_512_TF2.pkl",
+    parser.add_argument('--PCA_scaler', type=str, default="SoccerNetv2-DevKit/Features/average_512_TF2.pkl",
                         help="Pickle with pre-computed PCA scaler")
                         
     args = parser.parse_args()
