@@ -1,0 +1,46 @@
+2022-11-09 12:36:23,080 [MainThread  ] [INFO ]  Starting main function
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]  Parameters:
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]   SoccerNet_path : ../../../data/
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]         features : ResNET_TF2_PCA512.npy
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]       max_epochs : 1000
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]     load_weights : None
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]       model_name : NetVLAD++
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]        test_only : True
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]      split_train : ['train']
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]      split_valid : ['valid']
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]       split_test : ['test']
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]          version : 2
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]      feature_dim : 512
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]  evaluation_frequency : 10
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]        framerate : 2
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]      window_size : 15
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]             pool : NetVLAD++
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]       vocab_size : 64
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]       NMS_window : 30
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]    NMS_threshold : 0.0
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]       batch_size : 32
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]               LR : 0.001
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]              LRe : 1e-06
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]         patience : 10
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]              GPU : 1
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]   max_num_worker : 4
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]             seed : 0
+2022-11-09 12:36:23,081 [MainThread  ] [INFO ]         loglevel : INFO
+2022-11-09 12:36:23,082 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-11-09 12:36:25,817 [MainThread  ] [INFO ]  Model(
+  (pool_layer_before): NetVLAD()
+  (pool_layer_after): NetVLAD()
+  (fc): Linear(in_features=32768, out_features=18, bias=True)
+  (drop): Dropout(p=0.4, inplace=False)
+  (sigm): Sigmoid()
+)
+2022-11-09 12:36:25,817 [MainThread  ] [INFO ]  Total number of parameters: 655378
+2022-11-09 12:36:25,860 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-11-09 12:37:37,791 [MainThread  ] [INFO ]  Best Performance at end of training 
+2022-11-09 12:37:37,791 [MainThread  ] [INFO ]  a_mAP visibility all: 0.04748935520976878
+2022-11-09 12:37:37,791 [MainThread  ] [INFO ]  a_mAP visibility all per class: [0.0012137347909591844, 0.03133219779582373, 0.009418998039468475, 0.015780228034389596, 0.013147803291852419, 0.06544759669506686, 0.0361686881229284, 0.06612228869896247, 0.21238149039210052, 0.10612729554061086, 0.09913374813681518, 0.08009126936926406, 0.01149992153053943, 0.028124075611055323, 0.03070017410721165, 0.0002411507762560332, 0.00038837763276503554]
+2022-11-09 12:37:37,791 [MainThread  ] [INFO ]  a_mAP visibility visible: 0.050518932364700016
+2022-11-09 12:37:37,791 [MainThread  ] [INFO ]  a_mAP visibility visible per class: [0.006552150453475259, 0.025329259333462792, 0.01114145924877316, 0.024247800342951206, 0.015706960873983346, 0.06571538815460932, 0.03660720122309073, 0.0693295453643648, 0.2135831558421026, 0.11169953446946175, 0.09705821840784366, 0.07710105271993006, 0.014209351598145565, 0.027377269826107862, 0.05140254933163708, 0.005949240958912138, 0.005811712051049121]
+2022-11-09 12:37:37,791 [MainThread  ] [INFO ]  a_mAP visibility unshown: 0.054640202941879074
+2022-11-09 12:37:37,792 [MainThread  ] [INFO ]  a_mAP visibility unshown per class: [0.0, 0.03334202528859386, 0.0, 0.006268238365500069, 0.0031000732731505, 0.005866123925825418, 0.009784865175050216, 0.06288634953349011, 0.2266859823333297, 0.10369790655159679, 0.13210500059050218, 0.09037764851013991, 0.002204337139772661, 0.02894204766598428, 0.005062039891492253, 0.0, 0.0]
+2022-11-09 12:37:37,792 [MainThread  ] [INFO ]  Total Execution Time is 74.71132779121399 seconds
