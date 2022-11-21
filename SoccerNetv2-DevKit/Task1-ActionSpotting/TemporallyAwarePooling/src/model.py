@@ -12,7 +12,7 @@ from netvlad import NetVLAD, NetRVLAD
 
 
 class Model(nn.Module):
-    def __init__(self, weights=None, input_size=512, num_classes=17, vocab_size=64, window_size=15, framerate=2, pool="NetVLAD"):
+    def __init__(self, device, weights=None, input_size=512, num_classes=17, vocab_size=64, window_size=15, framerate=2, pool="NetVLAD"):
         """
         INPUT: a Tensor of shape (batch_size,window_size,feature_size)
         OUTPUTS: a Tensor of shape (batch_size,num_classes+1)
@@ -26,6 +26,7 @@ class Model(nn.Module):
         self.framerate = framerate
         self.pool = pool
         self.vlad_k = vocab_size
+        self.device = device
         
         # are feature alread PCA'ed?
         if not self.input_size == 512:   
@@ -87,12 +88,12 @@ class Model(nn.Module):
     def load_weights(self, weights=None):
         if(weights is not None):
             print("=> loading checkpoint '{}'".format(weights))
-            checkpoint = torch.load(weights)
+            checkpoint = torch.load(weights, map_location=self.device)
             self.load_state_dict(checkpoint['state_dict'])
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(weights, checkpoint['epoch']))
 
-    def forward(self, inputs):
+    def forward(self, inputs, return_feats=False):
         # input_shape: (batch,frames,dim_features)
 
 
@@ -128,7 +129,10 @@ class Model(nn.Module):
         # Extra FC layer with dropout and sigmoid activation
         output = self.sigm(self.fc(self.drop(inputs_pooled)))
 
-        return output
+        if return_feats:
+            return inputs_pooled
+        else:
+            return output
 
 
 if __name__ == "__main__":

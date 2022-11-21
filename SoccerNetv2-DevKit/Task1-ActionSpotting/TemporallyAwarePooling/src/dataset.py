@@ -46,7 +46,7 @@ class SoccerNetClips(Dataset):
     def __init__(self, path, features="ResNET_PCA512.npy", split=["train"], version=1, 
                 framerate=2, window_size=15):
         self.path = path
-        self.listGames = getListGames(split)
+        self.listGames = getListGames(split)#[:10]
         self.features = features
         self.window_size_frame = window_size*framerate
         self.version = version
@@ -152,7 +152,7 @@ class SoccerNetClipsTesting(Dataset):
     def __init__(self, path, features="ResNET_PCA512.npy", split=["test"], version=1, 
                 framerate=2, window_size=15):
         self.path = path
-        self.listGames = getListGames(split)
+        self.listGames = getListGames(split)#[:10]
         self.features = features
         self.window_size_frame = window_size*framerate
         self.framerate = framerate
