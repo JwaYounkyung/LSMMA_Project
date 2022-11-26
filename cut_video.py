@@ -5,7 +5,7 @@ from moviepy.video.fx.all import *
 
 class cut_vid():
     def __init__(self, start_time, end_time, vid_dir) -> None:
-        self.vid_dir = vid_dir #directory where the original video is stored 
+        self.vid_dir = vid_dir #directory where the original video is stored (str)
         self.start_time = start_time #list of starting timestamp (each element: str)
         self.end_time = end_time  #list of ending timestamp (each element: str)
 
@@ -26,8 +26,8 @@ class cut_vid():
         return start_second, end_second
     
     def final_cut_vid(self, save_dir, final_vid_title): 
-        #save_dir: where the final video is to be saved
-        #final_vid_title: name of the final video
+        #save_dir: where the final video is to be saved (str)
+        #final_vid_title: name of the final video (str)
         final_clips = []
         self.text_clips_start = []
         self.text_clips_end = []
@@ -56,6 +56,9 @@ class cut_vid():
         final_vid.write_videofile(self.save_dir_point)
     
     def create_caption(self, captions,  save_dir, caption_video_title):
+        #captions: list of captions, each element corresponds to a clip (list)
+        #save_dir: the directory where the video with the captions is to be saved (str)
+        #caption_video_title: name of the new video with captions (str)
         caption_list = []
         text_feature = lambda txt: TextClip(txt, font='Arial', fontsize=40, color='white')
         for i in range(len(self.text_clips_start)):
