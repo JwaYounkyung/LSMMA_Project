@@ -32,7 +32,7 @@ def main(args):
     
     # create model
     model = Model(weights=args.load_weights, input_size=args.feature_dim,
-                  num_classes=dataset_Test.num_classes, window_size=args.window_size, 
+                  num_classes=17, window_size=args.window_size, 
                   vocab_size = args.vocab_size,
                   framerate=args.framerate, pool=args.pool, device=device).to(device)
     logging.info(model)
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--split_valid', nargs='+', default=["valid"], help='list of split for validation')
     parser.add_argument('--split_test', nargs='+', default=["test"], help='list of split for testing')
 
-    parser.add_argument('--version', required=False, type=int,   default=2,     help='Version of the dataset' )
+    parser.add_argument('--version', required=False, type=int,   default=5,     help='Version of the dataset' )
     parser.add_argument('--feature_dim', required=False, type=int,   default=512,     help='Number of input features' )
     parser.add_argument('--evaluation_frequency', required=False, type=int,   default=10,     help='Number of chunks per epoch' )
     parser.add_argument('--framerate', required=False, type=int,   default=2,     help='Framerate of the input features' )
