@@ -20,6 +20,10 @@ def main(args):
         logging.info(arg.rjust(15) + " : " + str(getattr(args, arg)))
 
     # create dataset
+    if not args.test_only:
+        dataset_Train = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_train, version=args.version, framerate=args.framerate, window_size=args.window_size)
+        dataset_Valid = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_valid, version=args.version, framerate=args.framerate, window_size=args.window_size)
+        dataset_Valid_metric  = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_valid, version=args.version, framerate=args.framerate, window_size=args.window_size)
     dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=args.split_test, version=args.version, framerate=args.framerate, window_size=args.window_size)
 
     if args.feature_dim is None:
@@ -36,21 +40,45 @@ def main(args):
     parameters_per_layer  = [p.numel() for p in model.parameters() if p.requires_grad]
     logging.info("Total number of parameters: " + str(total_params))
 
+    # create dataloader
+    if not args.test_only:
+        train_loader = torch.utils.data.DataLoader(dataset_Train,
+            batch_size=args.batch_size, shuffle=True,
+            num_workers=args.max_num_worker, pin_memory=True)
+
+        val_loader = torch.utils.data.DataLoader(dataset_Valid,
+            batch_size=args.batch_size, shuffle=False,
+            num_workers=args.max_num_worker, pin_memory=True)
+
+        val_metric_loader = torch.utils.data.DataLoader(dataset_Valid_metric,
+            batch_size=args.batch_size, shuffle=False,
+            num_workers=args.max_num_worker, pin_memory=True)
+
+
+    # training parameters
+    if not args.test_only:
+        criterion = NLLLoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.LR, 
+                                    betas=(0.9, 0.999), eps=1e-08, 
+                                    weight_decay=0, amsgrad=False)
+
+
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=args.patience)
+
+        # start training
+        trainer(train_loader, val_loader, val_metric_loader, 
+                model, optimizer, scheduler, criterion,
+                model_name=args.model_name,
+                max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
+
+    # Free up some RAM memory
+    if not args.test_only:
+        del dataset_Train, dataset_Valid, dataset_Valid_metric, dataset_Test
+        del train_loader, val_loader, val_metric_loader
 
     # For the best model only
     checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"))
-    if args.features == 'ResNET_TF2_PCA512.npy' and args.model_name == 'NetVLAD++':
-        new_checkpoint = {}
-        for i, k in enumerate(checkpoint['state_dict']):
-            if i >= 2:
-                new_checkpoint[k] = checkpoint['state_dict'][k]
-        model.load_state_dict(new_checkpoint)
-
-    # elif args.features == 'ResNET_TF2_PCA512.npy' and args.model_name = 'NetVLAD++_PCA512':
-    #     model.load_state_dict(checkpoint['state_dict'])
-    else:
-        model.load_state_dict(checkpoint['state_dict'])
-
+    model.load_state_dict(checkpoint['state_dict'])
 
     # test on multiple splits [test/challenge]
     for split in args.split_test:

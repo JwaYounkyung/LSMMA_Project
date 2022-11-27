@@ -1,0 +1,58 @@
+2022-11-21 07:48:04,426 [MainThread  ] [INFO ]  Starting main function
+2022-11-21 07:48:04,426 [MainThread  ] [INFO ]  Parameters:
+2022-11-21 07:48:04,426 [MainThread  ] [INFO ]   SoccerNet_path : ../../../data/
+2022-11-21 07:48:04,426 [MainThread  ] [INFO ]         features : ResNET_TF2_PCA512.npy
+2022-11-21 07:48:04,426 [MainThread  ] [INFO ]       max_epochs : 1000
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]     load_weights : None
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]       model_name : NetVLAD++_highlight
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]        test_only : False
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]      split_train : ['train']
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]      split_valid : ['valid']
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]       split_test : ['test']
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]          version : 5
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]      feature_dim : 512
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]  evaluation_frequency : 10
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]        framerate : 2
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]      window_size : 15
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]             pool : NetVLAD++
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]       vocab_size : 64
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]       NMS_window : 30
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]    NMS_threshold : 0.0
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]       batch_size : 32
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]               LR : 0.001
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]              LRe : 1e-06
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]         patience : 10
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]              GPU : -1
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]   max_num_worker : 4
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]             seed : 0
+2022-11-21 07:48:04,427 [MainThread  ] [INFO ]         loglevel : INFO
+2022-11-21 07:48:04,428 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-11-21 07:48:04,697 [MainThread  ] [INFO ]  Pre-compute clips
+2022-11-21 07:48:08,521 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-11-21 07:48:08,612 [MainThread  ] [INFO ]  Pre-compute clips
+2022-11-21 07:48:11,548 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-11-21 07:48:11,639 [MainThread  ] [INFO ]  Pre-compute clips
+2022-11-21 07:48:15,684 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-11-21 07:48:16,709 [MainThread  ] [INFO ]  Model(
+  (pool_layer_before): NetVLAD()
+  (pool_layer_after): NetVLAD()
+  (fc): Linear(in_features=32768, out_features=3, bias=True)
+  (drop): Dropout(p=0.4, inplace=False)
+  (sigm): Sigmoid()
+)
+2022-11-21 07:48:16,709 [MainThread  ] [INFO ]  Total number of parameters: 163843
+2022-11-21 07:48:16,710 [MainThread  ] [INFO ]  start training
+2022-11-21 07:51:02,381 [MainThread  ] [INFO ]  Validation performance at epoch 11 -> 0.7860137000078299
+2022-11-21 07:53:02,415 [MainThread  ] [INFO ]  Plateau Reached!
+2022-11-21 07:53:35,654 [MainThread  ] [INFO ]  Validation performance at epoch 21 -> 0.7900314252766899
+2022-11-21 07:55:51,813 [MainThread  ] [INFO ]  Plateau Reached!
+2022-11-21 07:56:09,674 [MainThread  ] [INFO ]  Validation performance at epoch 31 -> 0.7906138808032843
+2022-11-21 07:58:43,654 [MainThread  ] [INFO ]  Validation performance at epoch 41 -> 0.7905609701751062
+2022-11-21 07:58:43,654 [MainThread  ] [INFO ]  Plateau Reached!
+2022-11-21 08:01:15,738 [MainThread  ] [INFO ]  Validation performance at epoch 51 -> 0.7905563959902102
+2022-11-21 08:01:30,385 [MainThread  ] [INFO ]  Plateau Reached!
+2022-11-21 08:03:48,670 [MainThread  ] [INFO ]  Validation performance at epoch 61 -> 0.7905525431862458
+2022-11-21 08:04:19,256 [MainThread  ] [INFO ]  Plateau Reached!
+2022-11-21 08:06:21,333 [MainThread  ] [INFO ]  Validation performance at epoch 71 -> 0.7905526098022203
+2022-11-21 08:06:51,306 [MainThread  ] [INFO ]  Plateau Reached and no more reduction -> Exiting Loop
+2022-11-21 08:06:51,328 [MainThread  ] [INFO ]  Checking/Download features and labels locally

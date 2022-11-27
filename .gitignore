@@ -3,6 +3,7 @@
 **/.vscode/
 **/results/
 **/.ipynb_checkpoints/
+**/__pycache__/
 **/outputs_test/
 *.zip
 **/TemporallyAwarePooling/models/
