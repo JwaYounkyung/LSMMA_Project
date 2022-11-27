@@ -2,3 +2,7 @@
 **/env/
 **/.vscode/
 **/results/
+**/.ipynb_checkpoints/
+**/outputs_test/
+*.zip
+**/TemporallyAwarePooling/models/
