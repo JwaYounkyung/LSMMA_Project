@@ -46,7 +46,7 @@ class SoccerNetClips(Dataset):
     def __init__(self, path, features="ResNET_PCA512.npy", split=["train"], version=1, 
                 framerate=2, window_size=15):
         self.path = path
-        self.listGames = getListGames(split)#[:10]
+        self.listGames = getListGames(split)
         self.features = features
         self.window_size_frame = window_size*framerate
         self.version = version
@@ -57,6 +57,13 @@ class SoccerNetClips(Dataset):
             self.dict_event = EVENT_DICTIONARY_V2
             self.num_classes = 17
             self.labels="Labels-v2.json"
+        #########################
+        # changed
+        elif version == 5:
+            EVENT_DICTIONARY_REPLAY = {'replay' : 1, 'real-time' : 0, 'others' : 0}
+            self.dict_event = EVENT_DICTIONARY_REPLAY
+        self.num_classes = 2
+        self.labels="Labels-cameras.json"
 
         logging.info("Checking/Download features and labels locally")
         downloader = SoccerNetDownloader(path)
@@ -91,7 +98,7 @@ class SoccerNetClips(Dataset):
             for annotation in labels["annotations"]:
 
                 time = annotation["gameTime"]
-                event = annotation["label"]
+                event = annotation["replay"]
 
                 half = int(time[0])
 
@@ -105,6 +112,12 @@ class SoccerNetClips(Dataset):
                     elif "soccer" in event: label = 2
                     else: continue
                 elif version == 2:
+                    if event not in self.dict_event:
+                        continue
+                    label = self.dict_event[event]
+                #####################################
+                # changed
+                elif version == 5:
                     if event not in self.dict_event:
                         continue
                     label = self.dict_event[event]
@@ -152,7 +165,7 @@ class SoccerNetClipsTesting(Dataset):
     def __init__(self, path, features="ResNET_PCA512.npy", split=["test"], version=1, 
                 framerate=2, window_size=15):
         self.path = path
-        self.listGames = getListGames(split)#[:10]
+        self.listGames = getListGames(split)
         self.features = features
         self.window_size_frame = window_size*framerate
         self.framerate = framerate
@@ -166,6 +179,13 @@ class SoccerNetClipsTesting(Dataset):
             self.dict_event = EVENT_DICTIONARY_V2
             self.num_classes = 17
             self.labels="Labels-v2.json"
+        #########################
+        # changed
+        elif version == 5:
+            EVENT_DICTIONARY_REPLAY = {'replay' : 1, 'real-time' : 0, 'others' : 0}
+            self.dict_event = EVENT_DICTIONARY_REPLAY
+        self.num_classes = 2
+        self.labels="Labels-cameras.json"
 
         logging.info("Checking/Download features and labels locally")
         downloader = SoccerNetDownloader(path)
@@ -203,7 +223,7 @@ class SoccerNetClipsTesting(Dataset):
             for annotation in labels["annotations"]:
 
                 time = annotation["gameTime"]
-                event = annotation["label"]
+                event = annotation["replay"]
 
                 half = int(time[0])
 
@@ -217,6 +237,12 @@ class SoccerNetClipsTesting(Dataset):
                     elif "soccer" in event: label = 2
                     else: continue
                 elif self.version == 2:
+                    if event not in self.dict_event:
+                        continue
+                    label = self.dict_event[event]
+                #####################################
+                # changed
+                elif self.version == 5:
                     if event not in self.dict_event:
                         continue
                     label = self.dict_event[event]
@@ -251,3 +277,33 @@ class SoccerNetClipsTesting(Dataset):
     def __len__(self):
         return len(self.listGames)
 
+
+
+class FeatureDataset(Dataset):
+    def __init__(self, path, model_name, split=["train"]):
+        self.path = path
+        self.model_name = model_name
+        self.listGames = getListGames(split)
+
+        self.dict_event = {'real-time' : 0, 'replay' : 1}
+        self.num_classes = 2
+
+        self.game_feats = np.load(os.path.join(self.path, self.model_name, split[0] + '.npy'))
+        self.game_labels = np.load(os.path.join(self.path, self.model_name, split[0] + '.label.npy'))
+
+        self.game_feats = torch.from_numpy(self.game_feats)
+        self.game_labels = torch.from_numpy(self.game_labels)
+
+
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
+        Returns:
+            clip_feat (np.array): clip of features.
+            clip_labels (np.array): clip of labels for the segmentation.
+        """
+        return self.game_feats[index,:], self.game_labels[index,:]
+
+    def __len__(self):
+        return len(self.game_feats)

@@ -7,36 +7,45 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 import torch
 
-from dataset import SoccerNetClips, SoccerNetClipsTesting #,SoccerNetClipsOld
-from model import Model
+from dataset import SoccerNetClips, SoccerNetClipsTesting, FeatureDataset
+from model import Model, FeatureModel
 from train import trainer, test, testSpotting
 from loss import NLLLoss
 from torchsummary import summary
+import wandb
 
 local_rank, gpu_ids = 0, [0, 1, 2, 3]
 device = f'cuda:{local_rank}' if torch.cuda.is_available() else 'cpu'
 
-def main(args):
+def wandb_init(config):
+    wandb.login(key="0699a3c4c17f76e3d85a803c4d7039edb8c3a3d9")
+    run = wandb.init(
+        name = "linear", 
+        reinit = True, 
+        project = "soccer-net",
+        config = config ### Wandb Config for your run
+    )
+    return run
+
+def main(args, config):
 
     logging.info("Parameters:")
     for arg in vars(args):
         logging.info(arg.rjust(15) + " : " + str(getattr(args, arg)))
 
-    # create dataset
     if not args.test_only:
-        dataset_Train = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_train, version=args.version, framerate=args.framerate, window_size=args.window_size)
-        dataset_Valid = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_valid, version=args.version, framerate=args.framerate, window_size=args.window_size)
-        dataset_Valid_metric  = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_valid, version=args.version, framerate=args.framerate, window_size=args.window_size)
-    dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=args.split_test, version=args.version, framerate=args.framerate, window_size=args.window_size)
+        dataset_Train = FeatureDataset(path=args.Feature_path, model_name=args.model_name, split=args.split_train)
+        dataset_Valid = FeatureDataset(path=args.Feature_path, model_name=args.model_name, split=args.split_valid)
+        dataset_Valid_metric = FeatureDataset(path=args.Feature_path, model_name=args.model_name, split=args.split_valid)
+    # dataset_Test = FeatureDataset(path=args.Feature_path, model_name=args.model_name, split=args.split_test)
 
     if args.feature_dim is None:
-        args.feature_dim = dataset_Test[0][1].shape[-1]
+        args.feature_dim = dataset_Train[0][1].shape[-1]
         print("feature_dim found:", args.feature_dim)
     # create model
-    model = Model(weights=args.load_weights, input_size=args.feature_dim,
-                  num_classes=dataset_Test.num_classes, window_size=args.window_size, 
-                  vocab_size = args.vocab_size,
-                  framerate=args.framerate, pool=args.pool).to(device)
+    model = FeatureModel(weights=args.load_weights, input_size=args.feature_dim,
+                         num_classes=dataset_Train.num_classes, 
+                         device=device).to(device)
     logging.info(model)
     total_params = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
@@ -72,48 +81,49 @@ def main(args):
 
 
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=args.patience)
-
+        run = wandb_init(config)
         # start training
         trainer(train_loader, val_loader, val_metric_loader, 
                 model, optimizer, scheduler, criterion,
                 model_name=args.model_name,
                 device=device,
-                max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
+                max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency,
+                run=run)
 
     # Free up some RAM memory
-    del dataset_Train, dataset_Valid, dataset_Valid_metric, dataset_Test
+    del dataset_Train, dataset_Valid, dataset_Valid_metric
     del train_loader, val_loader, val_metric_loader
 
     # For the best model only
     checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"))
     model.load_state_dict(checkpoint['state_dict'])
 
-    # test on multiple splits [test/challenge]
-    for split in args.split_test:
-        dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=[split], version=args.version, framerate=args.framerate, window_size=args.window_size)
+    # # test on multiple splits [test/challenge]
+    # for split in args.split_test:
+    #     dataset_Test  = SoccerNetClipsTesting(path=args.Feature_path, features=args.features, split=[split], version=args.version, framerate=args.framerate, window_size=args.window_size)
 
-        test_loader = torch.utils.data.DataLoader(dataset_Test,
-            batch_size=1, shuffle=False,
-            num_workers=1, pin_memory=True)
+    #     test_loader = torch.utils.data.DataLoader(dataset_Test,
+    #         batch_size=1, shuffle=False,
+    #         num_workers=1, pin_memory=True)
 
-        results = testSpotting(test_loader, model=model, model_name=args.model_name, device=device, NMS_window=args.NMS_window, NMS_threshold=args.NMS_threshold)
-        if results is None:
-            continue
+    #     results = testSpotting(test_loader, model=model, model_name=args.model_name, device=device, NMS_window=args.NMS_window, NMS_threshold=args.NMS_threshold)
+    #     if results is None:
+    #         continue
 
-        a_mAP = results["a_mAP"]
-        a_mAP_per_class = results["a_mAP_per_class"]
-        a_mAP_visible = results["a_mAP_visible"]
-        a_mAP_per_class_visible = results["a_mAP_per_class_visible"]
-        a_mAP_unshown = results["a_mAP_unshown"]
-        a_mAP_per_class_unshown = results["a_mAP_per_class_unshown"]
+    #     a_mAP = results["a_mAP"]
+    #     a_mAP_per_class = results["a_mAP_per_class"]
+    #     a_mAP_visible = results["a_mAP_visible"]
+    #     a_mAP_per_class_visible = results["a_mAP_per_class_visible"]
+    #     a_mAP_unshown = results["a_mAP_unshown"]
+    #     a_mAP_per_class_unshown = results["a_mAP_per_class_unshown"]
 
-        logging.info("Best Performance at end of training ")
-        logging.info("a_mAP visibility all: " +  str(a_mAP))
-        logging.info("a_mAP visibility all per class: " +  str( a_mAP_per_class))
-        logging.info("a_mAP visibility visible: " +  str( a_mAP_visible))
-        logging.info("a_mAP visibility visible per class: " +  str( a_mAP_per_class_visible))
-        logging.info("a_mAP visibility unshown: " +  str( a_mAP_unshown))
-        logging.info("a_mAP visibility unshown per class: " +  str( a_mAP_per_class_unshown))
+    #     logging.info("Best Performance at end of training ")
+    #     logging.info("a_mAP visibility all: " +  str(a_mAP))
+    #     logging.info("a_mAP visibility all per class: " +  str( a_mAP_per_class))
+    #     logging.info("a_mAP visibility visible: " +  str( a_mAP_visible))
+    #     logging.info("a_mAP visibility visible per class: " +  str( a_mAP_per_class_visible))
+    #     logging.info("a_mAP visibility unshown: " +  str( a_mAP_unshown))
+    #     logging.info("a_mAP visibility unshown per class: " +  str( a_mAP_per_class_unshown))
 
     return 
 
@@ -122,11 +132,11 @@ if __name__ == '__main__':
 
     parser = ArgumentParser(description='context aware loss function', formatter_class=ArgumentDefaultsHelpFormatter)
     
-    parser.add_argument('--SoccerNet_path',   required=False, type=str,   default="/path/to/SoccerNet/",     help='Path for SoccerNet' )
+    parser.add_argument('--Feature_path',   required=False, type=str,   default="data/model_features")
     parser.add_argument('--features',   required=False, type=str,   default="ResNET_TF2.npy",     help='Video features' )
     parser.add_argument('--max_epochs',   required=False, type=int,   default=1000,     help='Maximum number of epochs' )
     parser.add_argument('--load_weights',   required=False, type=str,   default=None,     help='weights to load' )
-    parser.add_argument('--model_name',   required=False, type=str,   default="NetVLAD++",     help='named of the model to save' )
+    parser.add_argument('--model_name',   required=False, type=str,   default="NetVLAD++_PCA512",     help='named of the model to save' )
     parser.add_argument('--test_only',   required=False, action='store_true',  help='Perform testing only' )
 
     parser.add_argument('--split_train', nargs='+', default=["train"], help='list of split for training')
@@ -134,7 +144,7 @@ if __name__ == '__main__':
     parser.add_argument('--split_test', nargs='+', default=["test"], help='list of split for testing')
 
     parser.add_argument('--version', required=False, type=int,   default=2,     help='Version of the dataset' )
-    parser.add_argument('--feature_dim', required=False, type=int,   default=None,     help='Number of input features' )
+    parser.add_argument('--feature_dim', required=False, type=int,   default=32768,     help='Number of input features' )
     parser.add_argument('--evaluation_frequency', required=False, type=int,   default=10,     help='Number of chunks per epoch' )
     parser.add_argument('--framerate', required=False, type=int,   default=2,     help='Framerate of the input features' )
     parser.add_argument('--window_size', required=False, type=int,   default=15,     help='Size of the chunk (in seconds)' )
@@ -184,5 +194,6 @@ if __name__ == '__main__':
 
     start=time.time()
     logging.info('Starting main function')
-    main(args)
+    config = {}
+    main(args, config)
     logging.info(f'Total Execution Time is {time.time()-start} seconds')

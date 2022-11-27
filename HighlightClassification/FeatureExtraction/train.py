@@ -14,7 +14,7 @@ from sklearn.metrics import average_precision_score
 from SoccerNet.Evaluation.ActionSpotting import evaluate
 from SoccerNet.Evaluation.utils import AverageMeter, EVENT_DICTIONARY_V2, INVERSE_EVENT_DICTIONARY_V2
 from SoccerNet.Evaluation.utils import EVENT_DICTIONARY_V1, INVERSE_EVENT_DICTIONARY_V1
-
+import wandb
 
 
 
@@ -27,6 +27,7 @@ def trainer(train_loader,
             criterion,
             model_name,
             device,
+            run,
             max_epochs=1000,
             evaluation_frequency=20):
 
@@ -35,6 +36,7 @@ def trainer(train_loader,
     best_loss = 9e99
 
     for epoch in range(max_epochs):
+        curr_lr = float(optimizer.param_groups[0]['lr'])
         best_model_path = os.path.join("models", model_name, "model.pth.tar")
 
         # train for one epoch
@@ -71,6 +73,11 @@ def trainer(train_loader,
             logging.info("Validation performance at epoch " +
                          str(epoch+1) + " -> " + str(performance_validation))
 
+        # wandb
+        wandb.log({"train_loss":loss_training, "validation_loss": loss_validation,
+                   "learning_Rate": curr_lr,
+                   "best_val_loss": best_loss})
+
         # Reduce LR on Plateau after patience reached
         prevLR = optimizer.param_groups[0]['lr']
         scheduler.step(loss_validation)
@@ -83,7 +90,7 @@ def trainer(train_loader,
             logging.info(
                 "Plateau Reached and no more reduction -> Exiting Loop")
             break
-
+    run.finish()
     return
 
 

@@ -135,6 +135,40 @@ class Model(nn.Module):
             return output
 
 
+class FeatureModel(nn.Module):
+    def __init__(self, device, weights=None, input_size=512, num_classes=2):
+        """
+        INPUT: a Tensor of shape (batch_size,window_size,feature_size)
+        OUTPUTS: a Tensor of shape (batch_size,num_classes+1)
+        """
+
+        super(FeatureModel, self).__init__()
+
+        self.input_size = input_size
+        self.num_classes = num_classes
+        self.device = device
+
+        self.fc = nn.Linear(input_size, self.num_classes+1)
+        self.drop = nn.Dropout(p=0.4)
+        self.sigm = nn.Sigmoid()
+
+    def load_weights(self, weights=None):
+        if(weights is not None):
+            print("=> loading checkpoint '{}'".format(weights))
+            checkpoint = torch.load(weights, map_location=self.device)
+            self.load_state_dict(checkpoint['state_dict'])
+            print("=> loaded checkpoint '{}' (epoch {})"
+                  .format(weights, checkpoint['epoch']))
+
+    def forward(self, inputs):
+        # input_shape: (batch,frames,dim_features)
+
+        inputs_pooled = inputs 
+        # Extra FC layer with dropout and sigmoid activation
+        output = self.sigm(self.fc(self.drop(inputs_pooled)))
+
+        return output
+
 if __name__ == "__main__":
     BS =256
     T = 15

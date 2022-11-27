@@ -6,3 +6,5 @@
 **/outputs_test/
 *.zip
 **/TemporallyAwarePooling/models/
+**/wandb/
+SoccerNetv2-Devkit/Task1-ActionSpotting/TemporallyAwarePooling/models/
