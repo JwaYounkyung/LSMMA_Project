@@ -2,5 +2,5 @@
 **/env/
 **/.vscode/
 **/results/
-**/models/
 **/wandb/
+SoccerNetv2-Devkit/Task1-ActionSpotting/TemporallyAwarePooling/models/
