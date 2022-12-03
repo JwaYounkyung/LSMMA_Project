@@ -11,7 +11,8 @@ import numpy as np
 import sklearn
 import sklearn.metrics
 from sklearn.metrics import average_precision_score
-from SoccerNet.Evaluation.ActionSpotting import evaluate
+# from SoccerNet.Evaluation.ActionSpotting import evaluate
+from ReplaySpotting import evaluate
 from SoccerNet.Evaluation.utils import AverageMeter, EVENT_DICTIONARY_V2, INVERSE_EVENT_DICTIONARY_V2
 from SoccerNet.Evaluation.utils import EVENT_DICTIONARY_V1, INVERSE_EVENT_DICTIONARY_V1
 
@@ -350,12 +351,22 @@ def testSpotting(dataloader, model, model_name, overwrite=True, NMS_window=30, N
         print("Visit eval.ai to evalaute performances on Challenge set")
         return None
         
-    # results =  evaluate(SoccerNet_path=dataloader.dataset.path, 
-    #              Predictions_path=output_results,
-    #              split="test",
-    #              prediction_file="results_spotting.json", 
-    #              version=dataloader.dataset.version)
+    # 1안
+    results =  evaluate(SoccerNet_path=dataloader.dataset.path, 
+                 Predictions_path=output_results,
+                 split="test",
+                 prediction_file="results_spotting.json", 
+                 version=dataloader.dataset.version)
 
-    results = None
+    # 2안
+    # results = None
+    
+    # 3안
+    # performance_test, AP_per_class = test(
+    #             dataloader,
+    #             model,
+    #             model_name)
+    # print("performance = ", performance_test)
+    # print("AP per class = ", AP_per_class)
     
     return results
