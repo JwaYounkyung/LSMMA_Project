@@ -283,17 +283,41 @@ class FeatureDataset(Dataset):
     def __init__(self, path, model_name, split=["train"]):
         self.path = path
         self.model_name = model_name
-        self.listGames = getListGames(split)
+        self.split = split
 
-        self.dict_event = {'real-time' : 0, 'replay' : 1}
+        EVENT_DICTIONARY_REPLAY = {'replay' : 1, 'real-time' : 0, 'others' : 0}
+        self.dict_event = EVENT_DICTIONARY_REPLAY
         self.num_classes = 2
 
-        self.game_feats = np.load(os.path.join(self.path, self.model_name, split[0] + '.npy'))
-        self.game_labels = np.load(os.path.join(self.path, self.model_name, split[0] + '.label.npy'))
+        self.dir_xs, self.dir_ys = self.file_list()
+
+        assert len(self.dir_xs) == len(self.dir_ys)
+        self.length = len(self.dir_xs)
+
+        self.game_feats, self.game_labels = [], []
+        for i in range(0, self.length):
+            x = np.load(self.dir_xs[i])
+            y = np.load(self.dir_ys[i])
+            self.game_feats.append(x)
+            self.game_labels.append(y)
+        
+        self.game_feats = np.concatenate(self.game_feats, axis=0)
+        self.game_labels = np.concatenate(self.game_labels, axis=0)
 
         self.game_feats = torch.from_numpy(self.game_feats)
         self.game_labels = torch.from_numpy(self.game_labels)
 
+    def file_list(self):
+        dir_x = os.path.join(self.path, self.split[0], 'x')  #TODO
+        dir_y = os.path.join(self.path, self.split[0], 'y')    #TODO
+
+        x_files = sorted(os.listdir(dir_x)) #TODO
+        y_files = sorted(os.listdir(dir_y)) #TODO
+
+        dir_xs = [os.path.join(dir_x, file) for file in x_files]
+        dir_ys = [os.path.join(dir_y, file) for file in y_files]
+
+        return dir_xs, dir_ys
 
     def __getitem__(self, index):
         """

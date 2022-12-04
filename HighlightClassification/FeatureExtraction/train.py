@@ -34,7 +34,7 @@ def trainer(train_loader,
     logging.info("start training")
 
     best_loss = 9e99
-
+    performance_validation = 0
     for epoch in range(max_epochs):
         curr_lr = float(optimizer.param_groups[0]['lr'])
         best_model_path = os.path.join("models", model_name, "model.pth.tar")
@@ -75,8 +75,8 @@ def trainer(train_loader,
 
         # wandb
         wandb.log({"train_loss":loss_training, "validation_loss": loss_validation,
-                   "learning_Rate": curr_lr,
-                   "best_val_loss": best_loss})
+                   "learning_Rate": curr_lr, "best_val_loss": best_loss,
+                   "validation_performance": performance_validation})
 
         # Reduce LR on Plateau after patience reached
         prevLR = optimizer.param_groups[0]['lr']
@@ -166,11 +166,6 @@ def test(dataloader, model, model_name, device):
             # measure data loading time
             data_time.update(time.time() - end)
             feats = feats.to(device)
-            # labels = labels.to(device)
-
-            # print(feats.shape)
-            # feats=feats.unsqueeze(0)
-            # print(feats.shape)
 
             # compute output
             output = model(feats)
@@ -193,8 +188,6 @@ def test(dataloader, model, model_name, device):
         AP.append(average_precision_score(np.concatenate(all_labels)
                                           [:, i], np.concatenate(all_outputs)[:, i]))
 
-    # t.set_description()
-    # print(AP)
     mAP = np.mean(AP)
     print(mAP, AP)
 
@@ -203,7 +196,6 @@ def test(dataloader, model, model_name, device):
 def testSpotting(dataloader, model, model_name, device, overwrite=True, NMS_window=30, NMS_threshold=0.5):
     
     split = '_'.join(dataloader.dataset.split)
-    # print(split)
     output_results = os.path.join("models", model_name, f"results_spotting_{split}.zip")
     output_folder = f"outputs_{split}"
 
@@ -311,10 +303,8 @@ def testSpotting(dataloader, model, model_name, device, overwrite=True, NMS_wind
                         spots = get_spot(
                             timestamp[:, l], window=NMS_window*framerate, thresh=NMS_threshold)
                         for spot in spots:
-                            # print("spot", int(spot[0]), spot[1], spot)
                             frame_index = int(spot[0])
                             confidence = spot[1]
-                            # confidence = predictions_half_1[frame_index, l]
 
                             seconds = int((frame_index//framerate)%60)
                             minutes = int((frame_index//framerate)//60)

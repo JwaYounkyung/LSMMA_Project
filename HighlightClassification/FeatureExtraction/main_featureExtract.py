@@ -10,10 +10,19 @@ import torch
 from dataset import SoccerNetClips, SoccerNetClipsTesting 
 from model import Model
 from feature_extractor import feature_extractor, feature_extractor_test
-from torchsummary import summary
+from torch import multiprocessing
+multiprocessing.Queue(1000)
 
 local_rank, gpu_ids = 0, [0, 1, 2, 3]
-device = f'cuda:{local_rank}' if torch.cuda.is_available() else 'cpu'
+
+if torch.cuda.is_available():
+    device = torch.device('cuda:{}'.format(local_rank))
+    torch.cuda.set_device(local_rank)
+elif torch.backends.mps.is_available():
+    device = torch.device('mps')
+else:
+    device = torch.device('cpu')
+print(device)
 
 def main(args):
 
@@ -21,14 +30,12 @@ def main(args):
     for arg in vars(args):
         logging.info(arg.rjust(15) + " : " + str(getattr(args, arg)))
 
-    # create dataset
-    dataset_Train = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_train, version=args.version, framerate=args.framerate, window_size=args.window_size)
-    dataset_Valid = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_valid, version=args.version, framerate=args.framerate, window_size=args.window_size)
-    dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=args.split_test, version=args.version, framerate=args.framerate, window_size=args.window_size)
-
-    if args.feature_dim is None:
-        args.feature_dim = dataset_Test[0][1].shape[-1]
-        print("feature_dim found:", args.feature_dim)
+    if args.extract_mode == 'train':
+        dataset_Train = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_train, version=args.version, framerate=args.framerate, window_size=args.window_size)
+    elif args.extract_mode == 'val':
+        dataset_Valid = SoccerNetClips(path=args.SoccerNet_path, features=args.features, split=args.split_valid, version=args.version, framerate=args.framerate, window_size=args.window_size)
+    elif args.extract_mode == 'test':
+        dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=args.split_test, version=args.version, framerate=args.framerate, window_size=args.window_size)
     
     # create model
     model = Model(weights=args.load_weights, input_size=args.feature_dim,
@@ -38,33 +45,23 @@ def main(args):
     logging.info(model)
     total_params = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
-    parameters_per_layer  = [p.numel() for p in model.parameters() if p.requires_grad]
     logging.info("Total number of parameters: " + str(total_params))
 
-    # create dataloader
-    train_loader = torch.utils.data.DataLoader(dataset_Train,
-        batch_size=args.batch_size, shuffle=True,
-        num_workers=args.max_num_worker, pin_memory=True)
-
-    val_loader = torch.utils.data.DataLoader(dataset_Valid,
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.max_num_worker, pin_memory=True)
-    
-    # test_loader = torch.utils.data.DataLoader(dataset_Test,
-    #     batch_size=1, shuffle=False,
-    #     num_workers=1, pin_memory=True)
-
-    for data in train_loader:
-        x, y = data
-        print(x.shape, y.shape)
-        break 
-    summary(model, input_size=x.shape[1:])
-
-
-    # feature extractor
-    train_features = feature_extractor(train_loader, model, args.model_name, args.split_train, device)
-    val_features = feature_extractor(val_loader, model, args.model_name, args.split_valid, device)
-    # test_features = feature_extractor_test(test_loader, model, args.model_name, args.split_test, device)
+    if args.extract_mode == 'train':
+        train_loader = torch.utils.data.DataLoader(dataset_Train,
+            batch_size=args.batch_size, shuffle=True,
+            num_workers=args.max_num_worker, pin_memory=True)
+        train_features = feature_extractor(train_loader, model, args.extracted_features_path, args.model_name, args.split_train, device)
+    elif args.extract_mode == 'val':
+        val_loader = torch.utils.data.DataLoader(dataset_Valid,
+            batch_size=args.batch_size, shuffle=False,
+            num_workers=args.max_num_worker, pin_memory=True)
+        val_features = feature_extractor(val_loader, model, args.extracted_features_path, args.model_name, args.split_valid, device)
+    elif args.extract_mode == 'test':    
+        test_loader = torch.utils.data.DataLoader(dataset_Test,
+            batch_size=1, shuffle=False,
+            num_workers=1, pin_memory=True)
+        test_features = feature_extractor_test(test_loader, model, args.extracted_features_path, args.model_name, args.split_test, device)
 
     return
 
@@ -76,9 +73,11 @@ if __name__ == '__main__':
     parser.add_argument('--SoccerNet_path',   required=False, type=str,   default="data/features",     help='Path for SoccerNet' )
     parser.add_argument('--features',   required=False, type=str,   default="ResNET_TF2_PCA512.npy",     help='Video features' )
     parser.add_argument('--max_epochs',   required=False, type=int,   default=1000,     help='Maximum number of epochs' )
-    parser.add_argument('--load_weights',   required=False, type=str,   default="SoccerNetv2-DevKit/Task1-ActionSpotting/TemporallyAwarePooling/models/NetVLAD++_reproduce/model.pth.tar",     help='weights to load' )
+    parser.add_argument('--load_weights',   required=False, type=str,   default="models/NetVLAD++_reproduce/model.pth.tar",     help='weights to load' )
     parser.add_argument('--model_name',   required=False, type=str,   default="NetVLAD++_PCA512",     help='named of the model to save' )
     parser.add_argument('--test_only',   required=False, action='store_true',  help='Perform testing only' )
+    parser.add_argument('--extracted_features_path',   required=False, type=str,   default="data/model_features", help='Path for extracted features' )
+    parser.add_argument('--extract_mode',   required=False, type=str,   default="val", help='extraction mode' )
 
     parser.add_argument('--split_train', nargs='+', default=["train"], help='list of split for training')
     parser.add_argument('--split_valid', nargs='+', default=["valid"], help='list of split for validation')
@@ -94,7 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--NMS_window',       required=False, type=int,   default=30, help='NMS window in second' )
     parser.add_argument('--NMS_threshold',       required=False, type=float,   default=0.0, help='NMS threshold for positive results' )
 
-    parser.add_argument('--batch_size', required=False, type=int,   default=32,     help='Batch size' )
+    parser.add_argument('--batch_size', required=False, type=int,   default=16,     help='Batch size' )
     parser.add_argument('--LR',       required=False, type=float,   default=1e-03, help='Learning Rate' )
     parser.add_argument('--LRe',       required=False, type=float,   default=1e-06, help='Learning Rate end' )
     parser.add_argument('--patience', required=False, type=int,   default=10,     help='Patience before reducing LR (ReduceLROnPlateau)' )

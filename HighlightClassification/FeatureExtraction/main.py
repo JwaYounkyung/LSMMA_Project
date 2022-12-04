@@ -7,15 +7,20 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 import torch
 
-from dataset import SoccerNetClips, SoccerNetClipsTesting, FeatureDataset
-from model import Model, FeatureModel
+from dataset import FeatureDataset
+from model import FeatureModel
 from train import trainer, test, testSpotting
 from loss import NLLLoss
-from torchsummary import summary
 import wandb
 
 local_rank, gpu_ids = 0, [0, 1, 2, 3]
-device = f'cuda:{local_rank}' if torch.cuda.is_available() else 'cpu'
+if torch.cuda.is_available():
+    device = torch.device('cuda:{}'.format(local_rank))
+    torch.cuda.set_device(local_rank)
+elif torch.backends.mps.is_available():
+    device = torch.device('mps')
+else:
+    device = torch.device('cpu')
 
 def wandb_init(config):
     wandb.login(key="0699a3c4c17f76e3d85a803c4d7039edb8c3a3d9")
@@ -66,12 +71,6 @@ def main(args, config):
             batch_size=args.batch_size, shuffle=False,
             num_workers=args.max_num_worker, pin_memory=True)
 
-    for data in train_loader:
-        x, y = data
-        print(x.shape, y.shape)
-        break 
-    summary(model, input_size=x.shape[1:])
-
     # training parameters
     if not args.test_only:
         criterion = NLLLoss()
@@ -80,7 +79,7 @@ def main(args, config):
                                     weight_decay=0, amsgrad=False)
 
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=args.patience)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=args.patience, factor=args.factor)
         run = wandb_init(config)
         # start training
         trainer(train_loader, val_loader, val_metric_loader, 
@@ -133,17 +132,16 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='context aware loss function', formatter_class=ArgumentDefaultsHelpFormatter)
     
     parser.add_argument('--Feature_path',   required=False, type=str,   default="data/model_features")
-    parser.add_argument('--features',   required=False, type=str,   default="ResNET_TF2.npy",     help='Video features' )
-    parser.add_argument('--max_epochs',   required=False, type=int,   default=1000,     help='Maximum number of epochs' )
+    parser.add_argument('--features',   required=False, type=str,   default="ResNET_TF2_PCA512.npy",     help='Video features' )
+    parser.add_argument('--max_epochs',   required=False, type=int,   default=100,     help='Maximum number of epochs' )
     parser.add_argument('--load_weights',   required=False, type=str,   default=None,     help='weights to load' )
-    parser.add_argument('--model_name',   required=False, type=str,   default="NetVLAD++_PCA512",     help='named of the model to save' )
+    parser.add_argument('--model_name',   required=False, type=str,   default="HighlightClassification_FE",     help='named of the model to save' )
     parser.add_argument('--test_only',   required=False, action='store_true',  help='Perform testing only' )
 
     parser.add_argument('--split_train', nargs='+', default=["train"], help='list of split for training')
     parser.add_argument('--split_valid', nargs='+', default=["valid"], help='list of split for validation')
     parser.add_argument('--split_test', nargs='+', default=["test"], help='list of split for testing')
 
-    parser.add_argument('--version', required=False, type=int,   default=2,     help='Version of the dataset' )
     parser.add_argument('--feature_dim', required=False, type=int,   default=32768,     help='Number of input features' )
     parser.add_argument('--evaluation_frequency', required=False, type=int,   default=10,     help='Number of chunks per epoch' )
     parser.add_argument('--framerate', required=False, type=int,   default=2,     help='Framerate of the input features' )
@@ -157,6 +155,8 @@ if __name__ == '__main__':
     parser.add_argument('--LR',       required=False, type=float,   default=1e-03, help='Learning Rate' )
     parser.add_argument('--LRe',       required=False, type=float,   default=1e-06, help='Learning Rate end' )
     parser.add_argument('--patience', required=False, type=int,   default=10,     help='Patience before reducing LR (ReduceLROnPlateau)' )
+    parser.add_argument('--factor', required=False, type=float,   default=0.1)
+    parser.add_argument('--weight_decay', required=False, type=float,   default=1e-5)
 
     parser.add_argument('--GPU',        required=False, type=int,   default=-1,     help='ID of the GPU to use' )
     parser.add_argument('--max_num_worker',   required=False, type=int,   default=4, help='number of worker to load data')
@@ -194,6 +194,14 @@ if __name__ == '__main__':
 
     start=time.time()
     logging.info('Starting main function')
-    config = {}
+    config = {
+        "batch_size": args.batch_size,
+        "num_layers": 2,
+        "lr": args.LR,
+        "epochs": args.max_epochs,
+        "step_size": args.patience,
+        "scheduler_gamma": args.factor,
+        "weight_decay": args.weight_decay,
+    }
     main(args, config)
     logging.info(f'Total Execution Time is {time.time()-start} seconds')
