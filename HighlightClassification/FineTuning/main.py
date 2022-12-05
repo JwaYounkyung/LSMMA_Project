@@ -11,10 +11,26 @@ from dataset import SoccerNetClips, SoccerNetClipsTesting #,SoccerNetClipsOld
 from model import Model
 from train import trainer, test, testSpotting
 from loss import NLLLoss
+import wandb
 
+def wandb_init(config):
+    wandb.login(key="")
+    run = wandb.init(
+        name = config['model_name'], 
+        reinit = True, 
+        project = "soccer-net",
+        config = config ### Wandb Config for your run
+    )
+    return run
 
 def main(args):
 
+    config = {'model_name':args.model_name,
+              'features':args.features,
+              'max_epochs':args.max_epochs,
+              'version':args.version,
+              'pool': args.pool}
+    print(config)
     logging.info("Parameters:")
     for arg in vars(args):
         logging.info(arg.rjust(15) + " : " + str(getattr(args, arg)))
@@ -30,10 +46,12 @@ def main(args):
         args.feature_dim = dataset_Test[0][1].shape[-1]
         print("feature_dim found:", args.feature_dim)
     # create model
+    ##########################
     model = Model(weights=args.load_weights, input_size=args.feature_dim,
                   num_classes=dataset_Test.num_classes, window_size=args.window_size, 
                   vocab_size = args.vocab_size,
-                  framerate=args.framerate, pool=args.pool).cuda()
+                  framerate=args.framerate, pool=args.pool, n_layers=args.n_layers, n_dim=1024).cuda()
+    # summary(model, input_size=x.shape[1:])
     logging.info(model)
     total_params = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
@@ -63,13 +81,15 @@ def main(args):
                                     weight_decay=0, amsgrad=False)
 
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=args.patience)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.1, verbose=True, patience=args.patience)
+        run = wandb_init(config)
 
         # start training
         trainer(train_loader, val_loader, val_metric_loader, 
                 model, optimizer, scheduler, criterion,
                 model_name=args.model_name,
-                max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
+                max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency, 
+                run=run)
 
     # Free up some RAM memory
     if not args.test_only:
@@ -134,6 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--vocab_size',       required=False, type=int,   default=64, help='Size of the vocabulary for NetVLAD' )
     parser.add_argument('--NMS_window',       required=False, type=int,   default=30, help='NMS window in second' )
     parser.add_argument('--NMS_threshold',       required=False, type=float,   default=0.0, help='NMS threshold for positive results' )
+    parser.add_argument('--n_layers', required=False, type=int, default=1, help='number of fc layers')
 
     parser.add_argument('--batch_size', required=False, type=int,   default=256,     help='Batch size' )
     parser.add_argument('--LR',       required=False, type=float,   default=1e-03, help='Learning Rate' )

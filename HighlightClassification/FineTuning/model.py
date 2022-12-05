@@ -12,7 +12,7 @@ from netvlad import NetVLAD, NetRVLAD
 
 
 class Model(nn.Module):
-    def __init__(self, weights=None, input_size=512, num_classes=17, vocab_size=64, window_size=15, framerate=2, pool="NetVLAD"):
+    def __init__(self, weights=None, input_size=512, num_classes=17, vocab_size=64, window_size=15, framerate=2, pool="NetVLAD", n_layers=2, n_dim=1024):
         """
         INPUT: a Tensor of shape (batch_size,window_size,feature_size)
         OUTPUTS: a Tensor of shape (batch_size,num_classes+1)
@@ -78,6 +78,20 @@ class Model(nn.Module):
             self.pool_layer_after = NetRVLAD(cluster_size=int(self.vlad_k/2), feature_size=self.input_size,
                                             add_batch_norm=True)
             self.fc = nn.Linear(input_size*self.vlad_k, self.num_classes+1)
+        
+        in_dim = self.fc.in_features
+        if n_layers == 1:
+            self.fc = nn.ModuleList([nn.Linear(in_dim, self.num_classes+1)])
+        else:
+            self.fc = nn.ModuleList([nn.Linear(in_dim, n_dim)])
+            for i in range(1, n_layers):
+                if i == n_layers-1:
+                    self.fc.append(nn.Linear(n_dim,  self.num_classes+1))
+                else:
+                    self.fc.append(nn.Linear(n_dim, n_dim))
+                    self.fc.append(nn.Dropout(0.3))
+                    # self.fc.append(nn.ReLU())
+            
 
         self.drop = nn.Dropout(p=0.4)
         self.sigm = nn.Sigmoid()
@@ -126,7 +140,11 @@ class Model(nn.Module):
 
 
         # Extra FC layer with dropout and sigmoid activation
-        output = self.sigm(self.fc(self.drop(inputs_pooled)))
+        # output = self.sigm(self.fc(self.drop(inputs_pooled)))
+        output = self.drop(inputs_pooled)
+        for i in range(len(self.fc)):
+            output = self.fc[i](output)
+        output = self.sigm(output)
 
         return output
 

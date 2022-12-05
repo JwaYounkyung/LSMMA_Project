@@ -1,0 +1,86 @@
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]  Starting main function
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]  Parameters:
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]   SoccerNet_path : ../../data/
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]         features : ResNET_TF2_PCA512.npy
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]       max_epochs : 1000
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]     load_weights : None
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]       model_name : NetVLAD++_highlight_nlayer3
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]        test_only : False
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]      split_train : ['train']
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]      split_valid : ['valid']
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]       split_test : ['test']
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]          version : 5
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]      feature_dim : 512
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]  evaluation_frequency : 10
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]        framerate : 2
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]      window_size : 15
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]             pool : NetVLAD++
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]       vocab_size : 64
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]       NMS_window : 30
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]    NMS_threshold : 0.0
+2022-12-05 08:28:48,287 [MainThread  ] [INFO ]         n_layers : 3
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]       batch_size : 32
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]               LR : 0.001
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]              LRe : 1e-06
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]         patience : 10
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]              GPU : -1
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]   max_num_worker : 4
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]             seed : 0
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]         loglevel : INFO
+2022-12-05 08:28:48,288 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-12-05 08:28:48,671 [MainThread  ] [INFO ]  Pre-compute clips
+2022-12-05 08:28:55,048 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-12-05 08:28:55,188 [MainThread  ] [INFO ]  Pre-compute clips
+2022-12-05 08:28:57,162 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-12-05 08:28:57,279 [MainThread  ] [INFO ]  Pre-compute clips
+2022-12-05 08:28:59,229 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-12-05 08:29:01,483 [MainThread  ] [INFO ]  Model(
+  (pool_layer_before): NetVLAD()
+  (pool_layer_after): NetVLAD()
+  (fc): ModuleList(
+    (0): Linear(in_features=32768, out_features=1024, bias=True)
+    (1): Linear(in_features=1024, out_features=1024, bias=True)
+    (2): Dropout(p=0.3, inplace=False)
+    (3): Linear(in_features=1024, out_features=3, bias=True)
+  )
+  (drop): Dropout(p=0.4, inplace=False)
+  (sigm): Sigmoid()
+)
+2022-12-05 08:29:01,484 [MainThread  ] [INFO ]  Total number of parameters: 34673667
+2022-12-05 08:29:05,401 [MainThread  ] [INFO ]  start training
+2022-12-05 08:37:45,658 [MainThread  ] [INFO ]  Validation performance at epoch 11 -> 0.7871344340211164
+2022-12-05 08:37:45,659 [MainThread  ] [INFO ]  mAP = 0.7871344340211164
+2022-12-05 08:37:45,659 [MainThread  ] [INFO ]  mAP per class = [0.7405697106277155, 0.8336991574145173]
+2022-12-05 08:45:37,394 [MainThread  ] [INFO ]  Validation performance at epoch 21 -> 0.7851404905602349
+2022-12-05 08:45:37,397 [MainThread  ] [INFO ]  mAP = 0.7851404905602349
+2022-12-05 08:45:37,397 [MainThread  ] [INFO ]  mAP per class = [0.7299485989675392, 0.8403323821529307]
+2022-12-05 08:47:55,072 [MainThread  ] [INFO ]  Plateau Reached!
+2022-12-05 08:53:22,852 [MainThread  ] [INFO ]  Validation performance at epoch 31 -> 0.7884551754015865
+2022-12-05 08:53:22,852 [MainThread  ] [INFO ]  mAP = 0.7884551754015865
+2022-12-05 08:53:22,852 [MainThread  ] [INFO ]  mAP per class = [0.7327657662528604, 0.8441445845503126]
+2022-12-05 08:56:19,379 [MainThread  ] [INFO ]  Plateau Reached!
+2022-12-05 09:00:59,200 [MainThread  ] [INFO ]  Validation performance at epoch 41 -> 0.790690109535199
+2022-12-05 09:00:59,200 [MainThread  ] [INFO ]  mAP = 0.790690109535199
+2022-12-05 09:00:59,200 [MainThread  ] [INFO ]  mAP per class = [0.7346452445195115, 0.8467349745508865]
+2022-12-05 09:04:49,419 [MainThread  ] [INFO ]  Plateau Reached!
+2022-12-05 09:08:42,721 [MainThread  ] [INFO ]  Validation performance at epoch 51 -> 0.7903874279244162
+2022-12-05 09:08:42,721 [MainThread  ] [INFO ]  mAP = 0.7903874279244162
+2022-12-05 09:08:42,722 [MainThread  ] [INFO ]  mAP per class = [0.7342040372814493, 0.846570818567383]
+2022-12-05 09:13:18,651 [MainThread  ] [INFO ]  Plateau Reached!
+2022-12-05 09:16:26,216 [MainThread  ] [INFO ]  Validation performance at epoch 61 -> 0.7904170299595404
+2022-12-05 09:16:26,216 [MainThread  ] [INFO ]  mAP = 0.7904170299595404
+2022-12-05 09:16:26,217 [MainThread  ] [INFO ]  mAP per class = [0.7341626984923736, 0.8466713614267073]
+2022-12-05 09:21:41,372 [MainThread  ] [INFO ]  Plateau Reached!
+2022-12-05 09:24:04,733 [MainThread  ] [INFO ]  Validation performance at epoch 71 -> 0.7904060173975638
+2022-12-05 09:24:04,733 [MainThread  ] [INFO ]  mAP = 0.7904060173975638
+2022-12-05 09:24:04,733 [MainThread  ] [INFO ]  mAP per class = [0.7341568429589812, 0.8466551918361465]
+2022-12-05 09:29:27,484 [MainThread  ] [INFO ]  Plateau Reached and no more reduction -> Exiting Loop
+2022-12-05 09:29:35,720 [MainThread  ] [INFO ]  Checking/Download features and labels locally
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  Best Performance at end of training 
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  a_mAP visibility all: 0.5296275022354396
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  a_mAP visibility all per class: [0.3805022602109071, 0.6787527442599722]
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  a_mAP visibility visible: None
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  a_mAP visibility visible per class: None
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  a_mAP visibility unshown: None
+2022-12-05 09:30:54,084 [MainThread  ] [INFO ]  a_mAP visibility unshown per class: None
+2022-12-05 09:30:54,085 [MainThread  ] [INFO ]  Total Execution Time is 3725.7982919216156 seconds
