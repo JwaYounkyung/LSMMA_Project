@@ -4,7 +4,7 @@ import numpy as np
 import random
 import os
 import time
-
+ 
 
 from tqdm import tqdm
 
@@ -149,31 +149,32 @@ class SoccerNetClips(Dataset):
 
 
 class SoccerNetClipsTesting(Dataset):
-    def __init__(self, path, features="ResNET_PCA512.npy", split=["test"], version=1, 
-                framerate=2, window_size=15):
-        self.path = path
-        self.listGames = getListGames(split)#[:10]
-        self.features = features
-        self.window_size_frame = window_size*framerate
-        self.framerate = framerate
-        self.version = version
-        self.split=split
-        if version == 1:
-            self.dict_event = EVENT_DICTIONARY_V1
-            self.num_classes = 3
-            self.labels="Labels.json"
-        elif version == 2:
-            self.dict_event = EVENT_DICTIONARY_V2
-            self.num_classes = 17
-            self.labels="Labels-v2.json"
+    def __init__(self, path, features="ResNET.npy", split=["test"], version=1, 
+              framerate=2, window_size=15):
+      self.path = path
+      # self.listGames = getListGames(split)
+      self.listGames = ['soccermatch']
+      self.features = features
+      self.window_size_frame = window_size*framerate
+      self.framerate = framerate
+      self.version = version
+      self.split=split
+      if version == 1:
+          self.dict_event = EVENT_DICTIONARY_V1
+          self.num_classes = 3
+          self.labels="Labels.json"
+      elif version == 2:
+          self.dict_event = EVENT_DICTIONARY_V2
+          self.num_classes = 17
+          self.labels="Labels-v2.json"
 
-        logging.info("Checking/Download features and labels locally")
-        downloader = SoccerNetDownloader(path)
-        for s in split:
-            if s == "challenge":
-                downloader.downloadGames(files=[f"1_{self.features}", f"2_{self.features}"], split=[s], verbose=False,randomized=True)
-            else:
-                downloader.downloadGames(files=[self.labels, f"1_{self.features}", f"2_{self.features}"], split=[s], verbose=False,randomized=True)
+      # logging.info("Checking/Download features and labels locally")
+      # downloader = SoccerNetDownloader(path)
+      # for s in split:
+      #     if s == "challenge":
+      #         downloader.downloadGames(files=[f"1_{self.features}", f"2_{self.features}"], split=[s], verbose=False,randomized=True)
+      #     else:
+      #         downloader.downloadGames(files=[self.labels, f"1_{self.features}", f"2_{self.features}"], split=[s], verbose=False,randomized=True)
 
 
     def __getitem__(self, index):
@@ -187,9 +188,11 @@ class SoccerNetClipsTesting(Dataset):
             label_half2 (np.array): labels (one-hot) for the 2nd half.
         """
         # Load features
-        feat_half1 = np.load(os.path.join(self.path, self.listGames[index], "1_" + self.features))
+        #feat_half1 = np.load(os.path.join(self.path, self.listGames[index] + "_1_" + self.features))
+        feat_half1 = np.load(os.path.join(self.path, self.listGames[index] + "_1.npy"))
         feat_half1 = feat_half1.reshape(-1, feat_half1.shape[-1])
-        feat_half2 = np.load(os.path.join(self.path, self.listGames[index], "2_" + self.features))
+        #feat_half2 = np.load(os.path.join(self.path, self.listGames[index] + "_2_" + self.features))
+        feat_half2 = np.load(os.path.join(self.path, self.listGames[index] + "_2.npy"))
         feat_half2 = feat_half2.reshape(-1, feat_half2.shape[-1])
 
         # Load labels
