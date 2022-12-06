@@ -110,8 +110,8 @@ def train(dataloader,
         for i, (feats, labels) in t:
             # measure data loading time
             data_time.update(time.time() - end)
-            feats = feats.to(device)
-            labels = labels.to(device)
+            feats = feats.cuda()
+            labels = labels.cuda()
             # compute output
             output = model(feats)
 
@@ -234,7 +234,8 @@ def testSpotting(dataloader, model, model_name, device, overwrite=True, NMS_wind
                     start_frame = BS*b
                     end_frame = BS*(b+1) if BS * \
                         (b+1) < len(feat_half1) else len(feat_half1)
-                    feat = feat_half1[start_frame:end_frame].to(device)
+                    feat = feat_half1[start_frame:end_frame].cuda()
+
                     output = model(feat).cpu().detach().numpy()
                     timestamp_long_half_1.append(output)
                 timestamp_long_half_1 = np.concatenate(timestamp_long_half_1)
@@ -244,7 +245,7 @@ def testSpotting(dataloader, model, model_name, device, overwrite=True, NMS_wind
                     start_frame = BS*b
                     end_frame = BS*(b+1) if BS * \
                         (b+1) < len(feat_half2) else len(feat_half2)
-                    feat = feat_half2[start_frame:end_frame].to(device)
+                    feat = feat_half2[start_frame:end_frame].cuda()
                     output = model(feat).cpu().detach().numpy()
                     timestamp_long_half_2.append(output)
                 timestamp_long_half_2 = np.concatenate(timestamp_long_half_2)
@@ -346,10 +347,12 @@ def testSpotting(dataloader, model, model_name, device, overwrite=True, NMS_wind
         print("Visit eval.ai to evalaute performances on Challenge set")
         return None
         
-    results =  evaluate(SoccerNet_path=dataloader.dataset.path, 
-                 Predictions_path=output_results,
-                 split="test",
-                 prediction_file="results_spotting.json", 
-                 version=dataloader.dataset.version)
+    # print(dataloader.dataset.path)
+    # print(output_results)
+    # results =  evaluate(SoccerNet_path=dataloader.dataset.path, 
+    #              Predictions_path=output_results,
+    #              split="test",
+    #              prediction_file="results_spotting.json", 
+    #              version=dataloader.dataset.version)
 
-    return results
+    #return results
