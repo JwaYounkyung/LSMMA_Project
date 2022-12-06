@@ -2,6 +2,18 @@ from moviepy.editor import *
 from moviepy.video.tools.subtitles import SubtitlesClip
 from moviepy.video.fx.all import *
 
+class make_second():
+    def __init__(self, time_stamp) -> None:
+      self.time_str = time_stamp
+    def timestamp_second(self):
+      start_h, start_m, start_s = self.time_str.split(":")
+
+      start_h = int(start_h)
+      start_m = int(start_m)
+      start_s = int(start_s)
+      start_second = start_h*3600 + start_m*60 + start_s
+      
+      return start_second
 
 class cut_vid():
     def __init__(self, start_time, end_time, vid_dir) -> None:
