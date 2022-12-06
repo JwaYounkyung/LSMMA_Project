@@ -107,11 +107,12 @@ if __name__ == '__main__':
   print("second duration: ", second_duration)
 
   
-  # print(get_url) 
-  # dl_low = download_video(get_url, "low_res.mp4", "360p", curr_dir+get_dir)
-  # dl_high = download_video(get_url, "high_res.mp4", "720p", curr_dir+get_dir)
-  # dl_low.download_url()
-  # dl_high.download_url()
+  #####Download Video#####
+  dl_low = download_video(get_url, "low_res.mp4", "360p", curr_dir+get_dir)
+  dl_high = download_video(get_url, "high_res.mp4", "720p", curr_dir+get_dir)
+  dl_low.download_url()
+  dl_high.download_url()
+  #####Download Video#####
 
   
   ###******feature extraction******###
