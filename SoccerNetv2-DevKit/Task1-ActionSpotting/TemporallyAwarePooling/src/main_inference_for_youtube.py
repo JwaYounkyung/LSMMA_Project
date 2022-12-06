@@ -26,10 +26,10 @@ def main(args):
         args.feature_dim = dataset_Test[0][1].shape[-1]
         print("feature_dim found:", args.feature_dim)
     # create model
-    model = Model(weights=args.load_weights, input_size=args.feature_dim,
+    model = Model("cuda", weights=args.load_weights, input_size=args.feature_dim,
                   num_classes=dataset_Test.num_classes, window_size=args.window_size, 
                   vocab_size = args.vocab_size,
-                  framerate=args.framerate, pool=args.pool).cpu() # CHANGE TO CUDA
+                  framerate=args.framerate, pool=args.pool).cuda()# CHANGE TO CUDA
     logging.info(model)
     total_params = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
@@ -38,20 +38,30 @@ def main(args):
 
 
     # For the best model only
-    checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"),  map_location = torch.device('cpu')) # CHANGE TO CUDA
-    model.load_state_dict(checkpoint['state_dict'])
+    checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"),  map_location = torch.device('cuda:0')) # CHANGE TO CUDA
+    
+    #print(checkpoint['state_dict'].keys())
+    #model.load_state_dict(checkpoint['state_dict'])
+    new_checkpoint = {}
+    for i, k in enumerate(checkpoint['state_dict']):
+        #if i >= 2:
+        new_checkpoint[k] = checkpoint['state_dict'][k]
+    model.load_state_dict(new_checkpoint)
 
 
     # test on multiple splits [test/challenge]
     # 얘가 model.py에서 훈련할때 evaluate 코드 복붙
     for split in args.split_test:
         dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=[split], version=args.version, framerate=args.framerate, window_size=args.window_size)
-
+        # dataset_Test.features.to(torch.device("cuda:0"))
+        # dataset_Test.labels.to(torch.device("cuda:0"))
         test_loader = torch.utils.data.DataLoader(dataset_Test,
             batch_size=1, shuffle=False,
             num_workers=1, pin_memory=True)
 
-        results = testSpotting(test_loader, model=model, model_name=args.model_name, NMS_window=args.NMS_window, NMS_threshold=args.NMS_threshold)
+       # print(test_loader.is_cuda)
+
+        results = testSpotting(test_loader,  model=model, model_name=args.model_name, device="cuda:0", NMS_window=args.NMS_window, NMS_threshold=args.NMS_threshold)
         if results is None:
             continue
 
@@ -92,7 +102,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_num_worker',   required=False, type=int,   default=4, help='number of worker to load data')
     parser.add_argument('--seed',   required=False, type=int,   default=0, help='seed for reproducibility')
 
-    # parser.add_argument('--logging_dir',       required=False, type=str,   default="log", help='Where to log' )
+    #parser.add_argument('--logging_dir',       required=False, type=str,   default="log", help='Where to log' )
     parser.add_argument('--loglevel',   required=False, type=str,   default='INFO', help='logging level')
 
     args = parser.parse_args()
