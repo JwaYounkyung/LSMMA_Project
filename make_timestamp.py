@@ -15,7 +15,7 @@ class create_timestamp():
                 time_stamp = i['gameTime']
                 if confidence >= 0.5 and label == 'Goal':
                     all_pred.append([label, confidence, time_stamp])
-            
+            all_pred = sorted(all_pred, key=lambda x: x[1], reverse=True)  
             total_cnt = cnt_goal + 2
             if len(all_pred) > total_cnt: 
               all_pred = all_pred[:total_cnt]
